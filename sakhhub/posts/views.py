@@ -45,10 +45,10 @@ def group_posts(request, slug):
 
 @login_required(login_url="login")
 def new_post(request):
+    context = {"title":"Новая публикация", "button":"Опубликовать"}
     form = PostForm(request.POST or None)
-    context = {"form":form}
     if not form.is_valid() or request.method != "POST":
-        return render(request, "new_post.html", context)
+        return render(request, "new_post.html", {"context":context, "form":form})
     post = form.save(commit=False)
     post.author = request.user
     post.save()
@@ -86,12 +86,12 @@ def post_view(request, username, post_id):
 
 @login_required(login_url="login")
 def post_edit(request, username, post_id):
+    context = {"title":"Редактирование записи", "button":"Сохранить"}
     post = get_object_or_404(Post, author__username = username, id = post_id)
     if request.user.username != post.author.username:
         return redirect("post", username=username, post_id = post_id)
     form = PostForm(request.POST or None, instance=post)
-    context = {"form":form, "post":post}
     if not form.is_valid() or request.method != "POST":
-        return render(request, "new_post.html", context)
+        return render(request, "new_post.html", {"context":context, "form":form, "post":post})
     form.save()
     return redirect('post', username=username, post_id = post_id)

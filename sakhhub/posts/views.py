@@ -1,11 +1,20 @@
+from django.shortcuts import redirect
 from django.shortcuts import render, get_object_or_404
+from django.core.paginator import Paginator
+from django.contrib.auth.decorators import login_required
+
 
 from .models import Post, Group
-# Create your views here.
+from .forms import PostForm
+
 
 def index(request):
-    latest = Post.objects.order_by("-pub_date")[:10]
-    context = {"posts":latest}
+    post_list = list(Post.objects
+                     .order_by('-pub_date')
+                     .all()
+                     .select_related('author')
+    )
+
 
     return render(request, 'index.html', context)
 
@@ -17,3 +26,14 @@ def group_posts(request, slug):
 
     return render(request, "group.html", context)
 
+
+@login_required(login_url='login')
+def new_post(request):
+    form = PostForm(request.POST or None)
+    if not form.is_valid() or request.method != 'POST':
+        return render(request, 'new_post.html', {'form':form})
+    post = form.save(commit=False)
+    post.author = request.user
+    post.save()
+
+    return redirect('index')

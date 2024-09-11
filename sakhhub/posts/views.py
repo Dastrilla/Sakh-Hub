@@ -14,15 +14,28 @@ def index(request):
                      .all()
                      .select_related('author')
     )
+    paginator = Paginator(post_list, 10)
+    page_number = request.GET.get('page')
+    page = paginator.get_page(page_number)
 
+    context = {"page":page, "paginator":paginator}
 
     return render(request, 'index.html', context)
 
 
 def group_posts(request, slug):
     group = get_object_or_404(Group, slug = slug)
-    posts = Post.objects.filter(group=group).order_by("-pub_date")[:12]
-    context = {"group":group, "posts":posts}
+    post_list = list(Post.objects
+                     .filter(group=group)
+                     .order_by("-pub_date")
+                     .select_related("group","author")
+                     )
+    
+    paginator = Paginator(post_list, 10)
+    page_number = request.GET.get('page')
+    page = paginator.get_page(page_number)
+
+    context = {"group":group, "page":page, "paginator":paginator}
 
     return render(request, "group.html", context)
 

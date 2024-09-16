@@ -25,7 +25,13 @@ SECRET_KEY = 'django-insecure-c*l8owi#lh8)cn*d)$0(fi+pq@hwa65z7w1pv2tfnw+%x2bk#h
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    '[::1]',
+    'testserver',
+
+]
 
 SITE_ID = 1
 # Application definition
@@ -42,6 +48,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sites',
     'django.contrib.flatpages',
+    'sorl.thumbnail',
 ]
 
 MIDDLEWARE = [
@@ -124,6 +131,10 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+
+MEDIA_URL = 'media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

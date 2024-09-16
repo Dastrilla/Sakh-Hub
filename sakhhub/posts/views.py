@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 
 
 from .models import Post, Group
-from .forms import PostForm
+from .forms import PostForm, CommentForm
 
 
 User = get_user_model()
@@ -80,9 +80,11 @@ def post_view(request, username, post_id):
                  .filter(author__username = profile.username)
                  )
 
-    context = {"post":post, "profile":profile}
+    form = CommentForm()
+    items = post.comments.all()
+    paginator = Paginator(posts, 10)
 
-    return render(request, "post.html", context)
+    return render(request, "post.html", {"post":post, "profile":profile, "paginator":paginator, "form":form,"items":items})
 
 @login_required(login_url="login")
 def post_edit(request, username, post_id):
@@ -90,8 +92,29 @@ def post_edit(request, username, post_id):
     post = get_object_or_404(Post, author__username = username, id = post_id)
     if request.user.username != post.author.username:
         return redirect("post", username=username, post_id = post_id)
-    form = PostForm(request.POST or None, instance=post)
+    form = PostForm(request.POST or None, files=request.FILES or None, instance=post)
     if not form.is_valid() or request.method != "POST":
         return render(request, "new_post.html", {"context":context, "form":form, "post":post})
     form.save()
-    return redirect('post', username=username, post_id = post_id)
+    return redirect('post', username=request.user.username, post_id = post_id)
+
+def page_not_found(request, exception):
+
+    context = {"path":request.path}
+    return render(request, "misc/404.html", context, status=404)
+
+
+def server_error(request):
+    return render(request, "misc/500.html", status=500)
+
+@login_required(login_url='login')
+def add_comment(request, username, post_id):
+    post = get_object_or_404(Post, author__username = username, id = post_id)
+    form = CommentForm(request.POST or None)
+    if not form.is_valid() or request.method != 'POST':
+        return render(request, "comments.html", {"form":form, "post":post})
+    comment = form.save(commit=False)
+    comment.post = post
+    comment.author = request.user
+    comment.save()
+    return redirect("post", username=username, post_id = post_id)

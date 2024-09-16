@@ -26,21 +26,26 @@ handler404 = "posts.views.page_not_found" # noqa
 handler500 = "posts.views.server_error" # noqa
 
 urlpatterns = [
+    path("", include("posts.urls")),
     path("admin/", admin.site.urls),
     path("auth/", include("users.urls")),
     path("auth/", include("django.contrib.auth.urls")),
-    path("", include("posts.urls")),
+    path('about-us/', views.flatpage, {'url':'/about-us/'}, name = 'about-us'),
+    path('about-spec/', views.flatpage, {'url':'/about-spec/'}, name = 'about-spec'),
+    path('support/', views.flatpage, {'url':'/support/'}, name = 'support'),
+
     path("about/", include('django.contrib.flatpages.urls')),
 ]
 
 urlpatterns += [
-    path('support/', views.flatpage, {'url':'/support/'}, name = 'support'),
-    path('about-us/', views.flatpage, {'url':'/about-us/'}, name = 'about-us'),
-    path('about-spec/', views.flatpage, {'url':'/about-spec/'}, name = 'about-spec'),
+
 ]
 
 if settings.DEBUG:
+    import debug_toolbar
+
     urlpatterns += static(settings.MEDIA_URL,
     document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL,
     document_root=settings.STATIC_ROOT)
+    urlpatterns +=(path("__debug__/", include(debug_toolbar.urls)),)

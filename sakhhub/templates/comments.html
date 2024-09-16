@@ -25,7 +25,7 @@
     <h5 class="mt-0">
     <a
         href="{% url 'profile' item.author.username %}"
-        name="comment_{{ item.id }}"
+        name="comment_{{ item.id }}" style="color: black;"
         >@{{ item.author.username }}</a>
     </h5>
     {{ item.text }}

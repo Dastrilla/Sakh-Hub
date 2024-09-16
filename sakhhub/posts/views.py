@@ -3,14 +3,16 @@ from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.cache import cache_page
 
 
-from .models import Post, Group
+from .models import Post, Group, Follow
 from .forms import PostForm, CommentForm
 
 
 User = get_user_model()
 
+@cache_page(30)
 def index(request):
     post_list = list(Post.objects
                      .order_by("-pub_date")
@@ -25,6 +27,10 @@ def index(request):
 
     return render(request, 'index.html', context)
 
+def groups(request):
+    group_list = list(Group.objects.all())
+
+    return render(request, 'groups.html', {'groups':group_list})
 
 def group_posts(request, slug):
     group = get_object_or_404(Group, slug = slug)
@@ -42,7 +48,6 @@ def group_posts(request, slug):
 
     return render(request, "group.html", context)
 
-
 @login_required(login_url="login")
 def new_post(request):
     context = {"title":"Новая публикация", "button":"Опубликовать"}
@@ -57,17 +62,20 @@ def new_post(request):
 
 def profile(request, username):
     profile = get_object_or_404(User, username = username)
-    post_list = list(Post.objects
+    following = False
+    if request.user.is_authenticated:
+        following = request.user.follower.filter(author=profile).exists()
+    post = list(Post.objects
                      .all()
                      .select_related('author')
                      .filter(author__username = profile.username)
                      )
     
-    paginator = Paginator(post_list, 10)
+    paginator = Paginator(post, 10)
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
 
-    context = {"profile":profile, "page":page, "paginator":paginator}
+    context = {"profile":profile, "page":page, "paginator":paginator, "following":following}
 
     return render (request, "profile.html", context)
 
@@ -103,7 +111,6 @@ def page_not_found(request, exception):
     context = {"path":request.path}
     return render(request, "misc/404.html", context, status=404)
 
-
 def server_error(request):
     return render(request, "misc/500.html", status=500)
 
@@ -118,3 +125,31 @@ def add_comment(request, username, post_id):
     comment.author = request.user
     comment.save()
     return redirect("post", username=username, post_id = post_id)
+
+@login_required(login_url='login')
+def follow_index(request):
+
+    post_list = Post.objects.filter(author__following__user=request.user)
+    paginator = Paginator(post_list, 10)
+    page_number = request.GET.get('page')
+    page = paginator.get_page(page_number)
+
+    return render(request, "follow.html", {"page":page, "paginator":paginator})
+
+@login_required(login_url='login')
+def profile_follow(request, username):
+    follow_author = get_object_or_404(User, username=username)
+    if follow_author != request.user and (not request.user.follower.filter(author=follow_author).exists()):
+        Follow.objects.create(
+            user = request.user,
+            author = follow_author
+        )
+    return redirect('profile', username=username)
+
+@login_required(login_url='login')
+def profile_unfollow(request, username):
+    follow_author = get_object_or_404(User, username=username)
+    data_follow = request.user.follower.filter(author = follow_author)
+    if data_follow.exists():
+        data_follow.delete()
+    return redirect('profile', username)

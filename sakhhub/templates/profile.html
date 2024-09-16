@@ -18,8 +18,8 @@
                             <ul class="list-group list-group-flush">
                                     <li class="list-group-item">
                                             <div class="h6 text-muted">
-                                            Подписчиков: XXX <br />
-                                            Подписан: XXX
+                                            Подписчиков: {{profile.following.count}} <br />
+                                            Подписан: {{profile.follower.count}}
                                             </div>
                                     </li>
                                     <li class="list-group-item">
@@ -27,34 +27,28 @@
                                                 Записей: {{profile.posts.count}}
                                             </div>
                                     </li>
+                                    {%if user.username != profile.username%}
+                                    <li class="list-group-item">
+                                            {% if following %}
+                                            <a class="btn btn-lg btn-light" 
+                                                    href="{% url 'profile_unfollow' profile.username %}" role="button"> 
+                                                    Отписаться 
+                                            </a> 
+                                            {% else %}
+                                            <a class="btn btn-lg btn-primary" 
+                                                    href="{% url 'profile_follow' profile.username %}" role="button">
+                                            Подписаться 
+                                            </a>
+                                            {% endif %}
+                                        </li>
+                                        {%endif%}
                             </ul>
                     </div>
             </div>
 
             <div class="col-md-9">                
                 {% for post in page %}
-                    <div class="card mb-3 mt-1 shadow-sm">
-
-                        {% thumbnail post.image "960x339" crop="center" upscale=True as im %}
-                        <img class="card-img" src="{{ im.url }}"/>
-                        {% endthumbnail %}
-
-                            <div class="card-body">
-                                    <p class="card-text">
-                                            <a href="{% url 'profile' profile.username %}"><strong class="d-block text-gray-dark">@{{post.author.username}}</strong></a>
-                                            {{post.text}} 
-                                    </p>
-                                    <div class="d-flex justify-content-between align-items-center">
-                                            <div class="btn-group ">
-                                                    <a class="btn btn-sm text-muted" href="{% url 'post' profile.username post.id %}" role="button">Добавить комментарий</a>
-                                                {% if user.username == profile.username %}
-                                                    <a class="btn btn-sm text-muted" href="{% url 'post_edit' profile.username post.id %}" role="button">Редактировать</a>
-                                                {% endif %}
-                                            </div>
-                                            <small class="text-muted">{{ post.pub_date }}</small>
-                                    </div>
-                            </div>
-                    </div>
+                        {% include "post_item.html" with post=post %}
                 {% endfor %}
         {% if page.has_other_pages %}
                 {% include "paginator.html" with items=page paginator=paginator %}

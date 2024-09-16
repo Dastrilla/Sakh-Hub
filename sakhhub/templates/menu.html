@@ -2,13 +2,13 @@
 <div class="row">
     <ul class="nav nav-tabs">
         <li class="nav-item">
-            <a class="nav-link {% if index %}active{% endif %}" href="{% url 'index'%}">Главная страница</a>
+            <a class="nav-link {% if index %}active{% endif %}" href="{% url 'index'%}" style="color:black">Главная страница</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link {% if groups %}active{% endif %}" href="{% url 'groups' %}">Группы</a>
+            <a class="nav-link {% if groups %}active{% endif %}" href="{% url 'groups' %}" style="color:black">Группы</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link {% if follow %}active{% endif %}" href="{% url 'follow_index'%}">Избранные авторы</a>
+            <a class="nav-link {% if follow %}active{% endif %}" href="{% url 'follow_index'%}" style="color:black">Избранные авторы</a>
         </li>
     </ul>
 </div>

@@ -12,7 +12,7 @@ from .forms import PostForm, CommentForm
 
 User = get_user_model()
 
-@cache_page(30)
+
 def index(request):
     post_list = list(Post.objects
                      .order_by("-pub_date")
